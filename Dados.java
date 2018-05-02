@@ -169,7 +169,6 @@ public class Dados {
 			  em que o A foi melhor do que o B, pelo numero total de testes realizados.   
 			*/
 
-			System.out.println(alunoAMelhor + " " + testes);
 			probabilidadeSerMelhor[i] = (double)(alunoAMelhor) / testes;
 		}	
 
@@ -240,16 +239,65 @@ public class Dados {
 		// Seleciona as melhores provas
 		for(int i = 0; i < tiposProva.length; i++) {
 			provas[i] = new int[tiposProva[i]];
-			for(int j = 0; j < provas.length; j++) provas[i][j] = (int)diferencaProbabilidadeAcerto[j][0];
+			for(int j = 0; j < provas[i].length; j++) provas[i][j] = (int)diferencaProbabilidadeAcerto[j][0]; // Seleciona a questao
 		}
 
 		return provas;
 	}
 
-	public static void selecionarMelhorProva(String arquivo, int alunoA, int alunoB, double[][] probabilidadeAcerto) throws FileNotFoundException, IOException {
+	/*
+	 * (2.2)
+	 *
+	 * Calcula a probabilidade de o alunoA ser melhor que os outros dado que a prova que sera aplicada para todos
+	 * eh a prova que maximiza a probabilidade de o alunoA ser melhor do que o alunoB.
+	 *
+	 * @param arquivo Nome do arquivo de destino dos dados processados
+	 * @param alunoA Indice do alunoA no vetor de probabilidades de acerto
+	 * @param alunoB Indice do alunoB no vetor de probabilidades de acerto
+	 * @param probabilidadeAcerto A probabilidade do aluno de indice j acertar a questao de indice i
+	 * @param numeroBaseTestes Numero de vezes que a prova vai ser aplicada
+	 */
+	public static void selecionarMelhorProva(String nomeArquivo, int alunoA, int alunoB, int[] alunos, double[][] probabilidadeAcerto, int numeroBaseTestes) throws FileNotFoundException, IOException {
 
+		Random resposta = new Random(1);
+
+		// Seleciona as melhores provas para o aluno A
 		int[][] melhoresProvas = melhoresProvas(alunoA, alunoB, probabilidadeAcerto);
 
+		File arquivo = new File(CAMINHO_DADOS + nomeArquivo);
+		FileWriter arquivoEditor = new FileWriter(arquivo, false); // Fase: sobrescreve o conteudo do arquivo, caso exista
+
+		for(int[] prova : melhoresProvas) {
+
+			// Escreve as questoes selecionadas
+			for(int questao : prova) arquivoEditor.write(questao + " ");
+			arquivoEditor.write(((char)8) + "\n");
+
+			// Aplica a prova para os alunos indicados
+			for(int aluno : alunos) {
+				int acertosA;
+				int acertosJ;
+
+				int alunoAMelhor = 0;
+				for(int teste = 0; teste < numeroBaseTestes; teste++) {
+					acertosA = 0;
+					acertosJ = 0;
+
+					for(int questao : prova) {
+						if(resposta.nextFloat() < probabilidadeAcerto[questao][alunoA]) acertosA++;
+						if(resposta.nextFloat() < probabilidadeAcerto[questao][aluno]) acertosJ++;
+					}
+
+					if(acertosA > acertosJ) alunoAMelhor++;
+				
+				}
+
+				arquivoEditor.write(((double)alunoAMelhor / numeroBaseTestes) + " ");
+				if(aluno == alunos[alunos.length - 1]) arquivoEditor.write("\n");
+			}
+		}
+
+		arquivoEditor.close();
 	}
 }
 
